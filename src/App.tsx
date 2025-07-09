@@ -14,6 +14,7 @@ import BlogPage from './pages/BlogPage';
 import FAQPage from './pages/FAQPage';
 import ShippingPage from './pages/ShippingPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
+import CompetitionsPage from './pages/CompetitionsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -85,6 +86,11 @@ function App() {
         <Route path="/blog" element={
           <ProtectedRoute>
             <BlogPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/competitions" element={
+          <ProtectedRoute>
+            <CompetitionsPage />
           </ProtectedRoute>
         } />
         <Route path="/create" element={

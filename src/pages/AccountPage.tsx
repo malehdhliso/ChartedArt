@@ -5,8 +5,12 @@ import { supabase } from '@/lib/supabase/client';
 import { UserCircle, LogOut, Edit2, Save, X, Phone, Calendar, Globe2, Bell } from 'lucide-react';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 import type { Database } from '@/lib/supabase/types';
+import { Trophy, Award, Star } from 'lucide-react';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type UserAward = Database['public']['Tables']['user_awards']['Row'] & {
+  competitions?: Database['public']['Tables']['competitions']['Row'];
+};
 
 type ShippingAddress = {
   street: string;
@@ -36,6 +40,7 @@ export default function AccountPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [userAwards, setUserAwards] = useState<UserAward[]>([]);
   
   const [editForm, setEditForm] = useState({
     full_name: '',
@@ -160,7 +165,28 @@ export default function AccountPage() {
       }
     };
 
+    const fetchUserAwards = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data: awards, error: awardsError } = await supabase
+          .from('user_awards')
+          .select(`
+            *,
+            competitions (title, theme)
+          `)
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (awardsError) throw awardsError;
+        setUserAwards(awards || []);
+      } catch (err) {
+        console.error('Error fetching user awards:', err);
+      }
+    };
     fetchProfile();
+    fetchUserAwards();
 
     return () => {
       mounted = false;
@@ -590,6 +616,54 @@ export default function AccountPage() {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Awards & Badges Section */}
+                <div className="mt-8 pt-6 border-t">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-sage-400" />
+                    Awards & Badges
+                  </h3>
+                  {userAwards.length === 0 ? (
+                    <div className="text-center py-8 bg-cream-50 rounded-lg">
+                      <Award className="w-12 h-12 text-sage-300 mx-auto mb-3" />
+                      <p className="text-charcoal-300 mb-2">No awards yet</p>
+                      <p className="text-sm text-charcoal-200">
+                        Participate in competitions to earn awards and badges!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {userAwards.map((award) => (
+                        <div key={award.id} className="bg-cream-50 p-4 rounded-lg flex items-center gap-4">
+                          <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            {award.award_name.toLowerCase().includes('winner') ? (
+                              <Trophy className="w-6 h-6 text-yellow-500" />
+                            ) : award.award_name.toLowerCase().includes('participant') ? (
+                              <Star className="w-6 h-6 text-sage-400" />
+                            ) : (
+                              <Award className="w-6 h-6 text-sage-400" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-charcoal-300">{award.award_name}</h4>
+                            {award.award_description && (
+                              <p className="text-sm text-charcoal-200 mb-1">{award.award_description}</p>
+                            )}
+                            {award.competitions && (
+                              <p className="text-sm text-sage-400">
+                                {award.competitions.title}
+                                {award.competitions.theme && ` - ${award.competitions.theme}`}
+                              </p>
+                            )}
+                            <p className="text-xs text-charcoal-200 mt-1">
+                              Earned on {new Date(award.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </>
             )}

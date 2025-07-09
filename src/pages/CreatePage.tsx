@@ -185,6 +185,41 @@ export default function CreatePage() {
           throw new Error('Failed to create product configuration');
         }
         productId = newProduct.id;
+
+        // Create item in Zoho Inventory
+        try {
+          const zohoItemData = {
+            name: `ChartedArt Kit - ${selectedSize.name} - ${selectedFrame.name} Frame`,
+            sku: `CA-${selectedSize.id}-${selectedFrame.id.toUpperCase()}`,
+            rate: totalPrice
+          };
+
+          const zohoResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zoho-integration`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              },
+              body: JSON.stringify({
+                action: 'createItem',
+                data: zohoItemData
+              }),
+            }
+          );
+
+          const zohoResult = await zohoResponse.json();
+          if (!zohoResult.success) {
+            console.warn('Failed to create item in Zoho:', zohoResult.error);
+            // Don't throw error here - continue with cart addition even if Zoho fails
+          } else {
+            console.log('Successfully created item in Zoho:', zohoResult.data);
+          }
+        } catch (zohoError) {
+          console.warn('Zoho integration error:', zohoError);
+          // Continue with cart addition even if Zoho integration fails
+        }
       }
 
       const { error: itemError } = await supabase

@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [profile, setProfile] = useState<any>(null);
   const [address, setAddress] = useState<ShippingAddress>({
     street: '',
     suburb: '',
@@ -45,6 +46,15 @@ export default function CheckoutPage() {
         }
 
         setEmail(session.user.email || '');
+
+        // Fetch user profile for Zoho integration
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        setProfile(userProfile);
 
         const { data: cart, error: cartError } = await supabase
           .from('carts')
@@ -140,6 +150,49 @@ export default function CheckoutPage() {
           .eq('cart_id', cart.id);
       }
 
+      // Create sales order in Zoho
+      try {
+        const zohoOrderData = {
+          customer_name: profile?.full_name || email,
+          line_items: items.map(item => ({
+            item_id: `CA-${item.products.size}-${item.products.frame_type.toUpperCase()}`, // Use SKU as item_id
+            rate: item.price,
+            quantity: item.quantity || 1
+          })),
+          shipping_address: {
+            address: address.street,
+            city: address.city,
+            state: address.province,
+            zip: address.postal_code,
+            country: 'South Africa'
+          }
+        };
+
+        const zohoResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zoho-integration`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              action: 'createSalesOrder',
+              data: zohoOrderData
+            }),
+          }
+        );
+
+        const zohoResult = await zohoResponse.json();
+        if (!zohoResult.success) {
+          console.warn('Failed to create sales order in Zoho:', zohoResult.error);
+        } else {
+          console.log('Successfully created sales order in Zoho:', zohoResult.data);
+        }
+      } catch (zohoError) {
+        console.warn('Zoho integration error:', zohoError);
+        // Continue with order completion even if Zoho integration fails
+      }
       navigate('/order-confirmation');
     } catch (err) {
       console.error('Error processing order:', err);

@@ -2,9 +2,11 @@ import { Palette, Image as ImageIcon, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '@/lib/supabase/client';
+import { Trophy, Award } from 'lucide-react';
 
 export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [featuredWinners, setFeaturedWinners] = useState<any[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -23,6 +25,28 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    // Fetch featured competition winners
+    async function fetchFeaturedWinners() {
+      try {
+        const { data: awards } = await supabase
+          .from('user_awards')
+          .select(`
+            *,
+            profiles (full_name),
+            competitions (title)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        setFeaturedWinners(awards || []);
+      } catch (error) {
+        console.error('Error fetching featured winners:', error);
+      }
+    }
+
+    fetchFeaturedWinners();
+  }, []);
   return (
     <>
       {/* Hero Section */}
@@ -126,6 +150,44 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {/* Competition Winners Section */}
+          {featuredWinners.length > 0 && (
+            <section className="py-16 md:py-20 bg-cream-50 px-4">
+              <div className="max-w-7xl mx-auto">
+                <h2 className="text-2xl md:text-3xl font-bold text-center text-charcoal-300 mb-12">
+                  Competition Winners
+                </h2>
+                <div className="grid md:grid-cols-3 gap-8">
+                  {featuredWinners.map((winner, index) => (
+                    <div key={winner.id} className="bg-white p-6 rounded-lg shadow-sm text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-sage-100 rounded-full flex items-center justify-center">
+                        {index === 0 ? (
+                          <Trophy className="w-8 h-8 text-yellow-500" />
+                        ) : (
+                          <Award className="w-8 h-8 text-sage-400" />
+                        )}
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{winner.award_name}</h3>
+                      <p className="text-charcoal-300 mb-2">{winner.profiles?.full_name}</p>
+                      <p className="text-sm text-charcoal-200">{winner.competitions?.title}</p>
+                      {winner.award_description && (
+                        <p className="text-sm text-charcoal-200 mt-2">{winner.award_description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center mt-12">
+                  <Link
+                    to="/competitions"
+                    className="inline-block bg-sage-400 text-white px-6 md:px-8 py-3 rounded-lg text-lg font-semibold hover:bg-sage-500 transition-colors"
+                  >
+                    Join Competitions
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
         </>
       )}
     </>
