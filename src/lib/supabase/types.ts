@@ -1,6 +1,87 @@
 @@ .. @@
          created_at: string
        }
+      initiatives: {
+        Row: {
+          id: string
+          title: string
+          description: string
+          organizer_id: string
+          related_event_id: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description: string
+          organizer_id: string
+          related_event_id?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          organizer_id?: string
+          related_event_id?: string | null
+          status?: string
+          created_at?: string
+        }
+      }
+      collage_submissions: {
+        Row: {
+          id: string
+          initiative_id: string
+          user_id: string
+          image_url: string
+          description: string | null
+          is_approved: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          initiative_id: string
+          user_id: string
+          image_url: string
+          description?: string | null
+          is_approved?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          initiative_id?: string
+          user_id?: string
+          image_url?: string
+          description?: string | null
+          is_approved?: boolean
+          created_at?: string
+        }
+      }
+      event_rsvps: {
+        Row: {
+          id: string
+          event_id: string
+          user_id: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          user_id: string
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          user_id?: string
+          status?: string
+          created_at?: string
+        }
+      }
 +      competitions: {
 +        Row: {
 +          id: string

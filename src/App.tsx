@@ -15,6 +15,8 @@ import FAQPage from './pages/FAQPage';
 import ShippingPage from './pages/ShippingPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
 import CompetitionsPage from './pages/CompetitionsPage';
+import InitiativesPage from './pages/InitiativesPage';
+import InitiativeDetailPage from './pages/InitiativeDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -91,6 +93,16 @@ function App() {
         <Route path="/competitions" element={
           <ProtectedRoute>
             <CompetitionsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/initiatives" element={
+          <ProtectedRoute>
+            <InitiativesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/initiatives/:id" element={
+          <ProtectedRoute>
+            <InitiativeDetailPage />
           </ProtectedRoute>
         } />
         <Route path="/create" element={

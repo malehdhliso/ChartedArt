@@ -81,6 +81,9 @@ export default function RootLayout() {
               <Link to="/competitions" className="text-charcoal-300 hover:text-sage-400">
                 Competitions
               </Link>
+              <Link to="/initiatives" className="text-charcoal-300 hover:text-sage-400">
+                Art for Action
+              </Link>
               
               {/* Protected routes - only show when authenticated */}
               {isAuthenticated && (
@@ -168,6 +171,13 @@ export default function RootLayout() {
               >
                 Competitions
               </Link>
+              <Link 
+                to="/initiatives" 
+                className="block text-lg text-charcoal-300 hover:text-sage-400"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Art for Action
+              </Link>
 
               {/* Protected routes - only show when authenticated */}
               {isAuthenticated && (
@@ -225,6 +235,7 @@ export default function RootLayout() {
                 <li><Link to="/events" className="hover:text-sage-300">Events</Link></li>
                 <li><Link to="/blog" className="hover:text-sage-300">Blog</Link></li>
                 <li><Link to="/competitions" className="hover:text-sage-300">Competitions</Link></li>
+                <li><Link to="/initiatives" className="hover:text-sage-300">Art for Action</Link></li>
               </ul>
             </div>
             <div>
